@@ -4,6 +4,7 @@ module control (
 
     output reg reg_write,
     output reg alu_src,
+    output reg alu_a_src,
 
     output reg mem_read,
     output reg mem_write,
@@ -27,27 +28,32 @@ module control (
     // 10 = PC + 4
     // 11 = Immediate
 
+    // ALU A source
+    // 0 = rs1_data
+    // 1 = PC
+
     always @(*) begin
 
         // =====================================
         // DEFAULT VALUES
         // =====================================
 
-        reg_write       = 1'b0;
-        alu_src         = 1'b0;
+        reg_write        = 1'b0;
+        alu_src          = 1'b0;
+        alu_a_src        = 1'b0;
 
-        mem_read        = 1'b0;
-        mem_write       = 1'b0;
-        mem_size        = 2'b00;
-        mem_unsigned    = 1'b0;
+        mem_read         = 1'b0;
+        mem_write        = 1'b0;
+        mem_size         = 2'b00;
+        mem_unsigned     = 1'b0;
 
-        branch          = 1'b0;
-        branch_type     = 3'b000;
+        branch           = 1'b0;
+        branch_type      = 3'b000;
 
-        jump            = 1'b0;
-        jump_register   = 1'b0;
+        jump             = 1'b0;
+        jump_register    = 1'b0;
 
-        imm_type        = 3'b000;
+        imm_type         = 3'b000;
 
         writeback_select = 2'b00;
 
@@ -67,6 +73,11 @@ module control (
             7'b0110011: begin
 
                 reg_write = 1'b1;
+
+                // ALU A = rs1_data
+                alu_a_src = 1'b0;
+
+                // ALU B = rs2_data
                 alu_src = 1'b0;
 
                 writeback_select = 2'b00;
@@ -84,6 +95,11 @@ module control (
             7'b0010011: begin
 
                 reg_write = 1'b1;
+
+                // ALU A = rs1_data
+                alu_a_src = 1'b0;
+
+                // ALU B = immediate
                 alu_src = 1'b1;
 
                 imm_type = 3'b000;
@@ -101,6 +117,9 @@ module control (
             7'b0000011: begin
 
                 reg_write = 1'b1;
+
+                // Address = rs1 + immediate
+                alu_a_src = 1'b0;
                 alu_src = 1'b1;
 
                 mem_read = 1'b1;
@@ -160,11 +179,15 @@ module control (
             7'b0100011: begin
 
                 reg_write = 1'b0;
+
+                // Address = rs1 + immediate
+                alu_a_src = 1'b0;
                 alu_src = 1'b1;
 
                 mem_write = 1'b1;
 
                 imm_type = 3'b001;
+
 
                 case (funct3)
 
@@ -197,6 +220,10 @@ module control (
             7'b1100011: begin
 
                 branch = 1'b1;
+
+                // Branch comparator uses rs1_data
+                // and rs2_data directly.
+                alu_a_src = 1'b0;
                 alu_src = 1'b0;
 
                 imm_type = 3'b010;
@@ -249,6 +276,7 @@ module control (
 
                 imm_type = 3'b100;
 
+                // rd = PC + 4
                 writeback_select = 2'b10;
 
             end
@@ -262,6 +290,8 @@ module control (
 
                 reg_write = 1'b1;
 
+                // Target = rs1 + immediate
+                alu_a_src = 1'b0;
                 alu_src = 1'b1;
 
                 jump = 1'b1;
@@ -269,6 +299,7 @@ module control (
 
                 imm_type = 3'b000;
 
+                // rd = PC + 4
                 writeback_select = 2'b10;
 
             end
@@ -284,6 +315,7 @@ module control (
 
                 imm_type = 3'b011;
 
+                // rd = immediate
                 writeback_select = 2'b11;
 
             end
@@ -297,12 +329,23 @@ module control (
 
                 reg_write = 1'b1;
 
+                // ALU A = PC
+                alu_a_src = 1'b1;
+
+                // ALU B = immediate
+                alu_src = 1'b1;
+
                 imm_type = 3'b011;
 
+                // rd = ALU result
                 writeback_select = 2'b00;
 
             end
 
+
+            // ---------------------------------
+            // DEFAULT
+            // ---------------------------------
 
             default: begin
                 // Keep default control signals
