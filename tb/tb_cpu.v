@@ -10,54 +10,46 @@ module tb_cpu;
         .reset(reset)
     );
 
-    // Clock
     always #5 clk = ~clk;
 
-    
-initial begin
+    initial begin
 
-    clk = 1'b0;
-    reset = 1'b1;
+        clk = 0;
+        reset = 1;
 
-    // ADD x3, x1, x2
-    dut.imem_unit.memory[0] = 8'hB3;
-    dut.imem_unit.memory[1] = 8'h81;
-    dut.imem_unit.memory[2] = 8'h20;
-    dut.imem_unit.memory[3] = 8'h00;
+        // Load complete RV32I program into instruction memory
+        $readmemh("programs/hex/test_all.hex",
+                  dut.imem_unit.memory);
 
-    // Keep reset active
-    #12;
+        // Hold reset for a little while
+        #12;
+        reset = 0;
 
-    reset = 1'b0;
+        // Let the CPU execute the program
+        #120;
 
-    // Put known values into registers
-    dut.regfile_unit.regs[1] = 32'd10;
-    dut.regfile_unit.regs[2] = 32'd20;
+        $display("=================================");
+        $display("FINAL REGISTER STATE");
+        $display("=================================");
 
-    // Wait for the instruction to execute
-    #3;
+        $display("x1  = %d", dut.regfile_unit.regs[1]);
+        $display("x2  = %d", dut.regfile_unit.regs[2]);
+        $display("x3  = %d", dut.regfile_unit.regs[3]);
+        $display("x4  = %d", dut.regfile_unit.regs[4]);
+        $display("x5  = %d", dut.regfile_unit.regs[5]);
+        $display("x6  = %d", dut.regfile_unit.regs[6]);
+        $display("x7  = %d", dut.regfile_unit.regs[7]);
+        $display("x8  = %d", dut.regfile_unit.regs[8]);
+        $display("x9  = %d", dut.regfile_unit.regs[9]);
+        $display("x10 = %d", dut.regfile_unit.regs[10]);
+        $display("x11 = %d", dut.regfile_unit.regs[11]);
+        $display("x12 = %d", dut.regfile_unit.regs[12]);
 
-    $display("=================================");
-    $display("ADD TEST");
-    $display("=================================");
+        $display("=================================");
+        $display("FINAL PC = %h", dut.pc);
+        $display("=================================");
 
-    $display("x1          = %d", dut.regfile_unit.regs[1]);
-    $display("x2          = %d", dut.regfile_unit.regs[2]);
+        $finish;
+    end
 
-    $display("ALU A       = %d", dut.alu_a);
-    $display("ALU B       = %d", dut.alu_b);
-    $display("ALU Result  = %d", dut.alu_result);
-
-    $display("Writeback   = %d", dut.writeback_data);
-
-    // Wait for rising edge so register write occurs
-    #2;
-
-    $display("x3          = %d", dut.regfile_unit.regs[3]);
-
-    $finish;
-
-end
-
-        
 endmodule

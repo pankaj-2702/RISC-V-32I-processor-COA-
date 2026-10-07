@@ -212,15 +212,30 @@ module cpu (
                                        immediate;
 
 
-    // =========================================
-    // NEXT PC
-    // =========================================
+   // =========================================
+// BRANCH COMPARATOR
+// =========================================
 
-    // Temporary:
-    // Always execute the next sequential instruction.
-    //
-    // Branch and jump logic will replace this later.
+wire branch_taken;
 
-    assign next_pc = pc + 32'd4;
+branch_cmp branch_cmp_unit (
+    .a(rs1_data),
+    .b(rs2_data),
+    .branch_type(branch_type),
+    .taken(branch_taken)
+);
 
+
+wire [31:0] branch_target;
+
+assign branch_target = pc + immediate;
+
+
+assign next_pc =
+    (jump && jump_register) ? (alu_result & 32'hFFFFFFFE) :
+    (jump && !jump_register) ? (pc + immediate) :
+    (branch && branch_taken) ? (pc + immediate) :
+                               (pc + 32'd4);
+
+    
 endmodule
