@@ -27,10 +27,8 @@ module tb_cpu;
 
         // Let the CPU execute the program
         #120;
-
-        $display("=================================");
         $display("FINAL REGISTER STATE");
-        $display("=================================");
+      
 
         $display("x1  = %d", dut.regfile_unit.regs[1]);
         $display("x2  = %d", dut.regfile_unit.regs[2]);
@@ -45,9 +43,9 @@ module tb_cpu;
         $display("x11 = %d", dut.regfile_unit.regs[11]);
         $display("x12 = %d", dut.regfile_unit.regs[12]);
 
-        $display("=================================");
+        $display("");
         $display("FINAL PC = %h", dut.pc);
-        $display("=================================");
+        $display("");
 
         $finish;
     end
